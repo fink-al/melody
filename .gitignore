@@ -2,5 +2,4 @@
 benchmark
 *.swp
 coverage.out
-Makefile
 node_modules
