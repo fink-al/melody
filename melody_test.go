@@ -57,7 +57,6 @@ func NewDialer(url string) (*websocket.Conn, error) {
 
 func MustNewDialer(url string) *websocket.Conn {
 	conn, err := NewDialer(url)
-
 	if err != nil {
 		panic("could not dail websocket")
 	}
@@ -191,7 +190,6 @@ func TestBroadcast(t *testing.T) {
 	msg := "test"
 
 	test := func(h func(*TestServer), w func(*websocket.Conn)) {
-
 		ws := NewTestServer()
 
 		h(ws)
@@ -381,7 +379,6 @@ func TestSessions(t *testing.T) {
 	disconnected := 0
 	for i := 0; i < connect; i++ {
 		conn, err := NewDialer(server.URL)
-
 		if err != nil {
 			t.Error(err)
 		}

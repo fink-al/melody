@@ -46,11 +46,13 @@ var validReceivedCloseCodes = map[int]bool{
 	CloseTLSHandshake:            false,
 }
 
-type handleMessageFunc func(*Session, []byte)
-type handleErrorFunc func(*Session, error)
-type handleCloseFunc func(*Session, int, string) error
-type handleSessionFunc func(*Session)
-type filterFunc func(*Session) bool
+type (
+	handleMessageFunc func(*Session, []byte)
+	handleErrorFunc   func(*Session, error)
+	handleCloseFunc   func(*Session, int, string) error
+	handleSessionFunc func(*Session)
+	filterFunc        func(*Session) bool
+)
 
 // Melody implements a websocket manager.
 type Melody struct {
@@ -172,7 +174,6 @@ func (m *Melody) HandleRequestWithKeys(w http.ResponseWriter, r *http.Request, k
 	}
 
 	conn, err := m.Upgrader.Upgrade(w, r, w.Header())
-
 	if err != nil {
 		return err
 	}
