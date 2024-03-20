@@ -21,6 +21,10 @@ type Session struct {
 	rwmutex    *sync.RWMutex
 }
 
+func (s *Session) GetWebsocketConnection() *websocket.Conn {
+	return s.conn
+}
+
 func (s *Session) writeMessage(message *envelope) {
 	if s.closed() {
 		s.melody.errorHandler(s, ErrWriteClosed)
@@ -41,7 +45,6 @@ func (s *Session) writeRaw(message *envelope) error {
 
 	s.conn.SetWriteDeadline(time.Now().Add(s.melody.Config.WriteWait))
 	err := s.conn.WriteMessage(message.t, message.msg)
-
 	if err != nil {
 		return err
 	}
@@ -80,7 +83,6 @@ loop:
 		select {
 		case msg := <-s.output:
 			err := s.writeRaw(msg)
-
 			if err != nil {
 				s.melody.errorHandler(s, err)
 				break loop
@@ -127,7 +129,6 @@ func (s *Session) readPump() {
 
 	for {
 		t, message, err := s.conn.ReadMessage()
-
 		if err != nil {
 			s.melody.errorHandler(s, err)
 			break
