@@ -209,12 +209,18 @@ func (m *Melody) HandleRequestWithKeys(w http.ResponseWriter, r *http.Request, k
 }
 
 // Broadcast broadcasts a text message to all sessions.
-func (m *Melody) Broadcast(msg []byte) error {
+func (m *Melody) Broadcast(msg []byte, msgType ...int) error {
+	var tt int
+	if len(msgType) > 0 {
+		tt = msgType[0]
+	} else {
+		tt = websocket.TextMessage
+	}
 	if m.hub.closed() {
 		return ErrClosed
 	}
 
-	message := &envelope{t: websocket.TextMessage, msg: msg}
+	message := &envelope{t: tt, msg: msg}
 	m.hub.broadcast <- message
 
 	return nil
