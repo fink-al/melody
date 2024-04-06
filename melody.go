@@ -26,26 +26,6 @@ const (
 	CloseTLSHandshake            = 1015
 )
 
-// Duplicate of codes from gorilla/websocket for convenience.
-var validReceivedCloseCodes = map[int]bool{
-	// see http://www.iana.org/assignments/websocket/websocket.xhtml#close-code-number
-
-	CloseNormalClosure:           true,
-	CloseGoingAway:               true,
-	CloseProtocolError:           true,
-	CloseUnsupportedData:         true,
-	CloseNoStatusReceived:        false,
-	CloseAbnormalClosure:         false,
-	CloseInvalidFramePayloadData: true,
-	ClosePolicyViolation:         true,
-	CloseMessageTooBig:           true,
-	CloseMandatoryExtension:      true,
-	CloseInternalServerErr:       true,
-	CloseServiceRestart:          true,
-	CloseTryAgainLater:           true,
-	CloseTLSHandshake:            false,
-}
-
 type (
 	handleMessageFunc func(*Session, []byte)
 	handleErrorFunc   func(*Session, error)
@@ -168,7 +148,7 @@ func (m *Melody) HandleRequest(w http.ResponseWriter, r *http.Request) error {
 }
 
 // HandleRequestWithKeys does the same as HandleRequest but populates session.Keys with keys.
-func (m *Melody) HandleRequestWithKeys(w http.ResponseWriter, r *http.Request, keys map[string]interface{}) error {
+func (m *Melody) HandleRequestWithKeys(w http.ResponseWriter, r *http.Request, keys map[string]any) error {
 	if m.hub.closed() {
 		return ErrClosed
 	}
@@ -182,7 +162,7 @@ func (m *Melody) HandleRequestWithKeys(w http.ResponseWriter, r *http.Request, k
 		Request:    r,
 		Keys:       keys,
 		conn:       conn,
-		output:     make(chan *envelope, m.Config.MessageBufferSize),
+		output:     make(chan envelope, m.Config.MessageBufferSize),
 		outputDone: make(chan struct{}),
 		melody:     m,
 		open:       true,
@@ -219,8 +199,7 @@ func (m *Melody) Broadcast(msg []byte, msgType ...int) error {
 	if m.hub.closed() {
 		return ErrClosed
 	}
-
-	message := &envelope{t: tt, msg: msg}
+	message := envelope{t: tt, msg: msg}
 	m.hub.broadcast <- message
 
 	return nil
@@ -232,7 +211,7 @@ func (m *Melody) BroadcastFilter(msg []byte, fn func(*Session) bool) error {
 		return ErrClosed
 	}
 
-	message := &envelope{t: websocket.TextMessage, msg: msg, filter: fn}
+	message := envelope{t: websocket.TextMessage, msg: msg, filter: fn}
 	m.hub.broadcast <- message
 
 	return nil
@@ -261,7 +240,7 @@ func (m *Melody) BroadcastBinary(msg []byte) error {
 		return ErrClosed
 	}
 
-	message := &envelope{t: websocket.BinaryMessage, msg: msg}
+	message := envelope{t: websocket.BinaryMessage, msg: msg}
 	m.hub.broadcast <- message
 
 	return nil
@@ -273,7 +252,7 @@ func (m *Melody) BroadcastBinaryFilter(msg []byte, fn func(*Session) bool) error
 		return ErrClosed
 	}
 
-	message := &envelope{t: websocket.BinaryMessage, msg: msg, filter: fn}
+	message := envelope{t: websocket.BinaryMessage, msg: msg, filter: fn}
 	m.hub.broadcast <- message
 
 	return nil
@@ -300,7 +279,7 @@ func (m *Melody) Close() error {
 		return ErrClosed
 	}
 
-	m.hub.exit <- &envelope{t: websocket.CloseMessage, msg: []byte{}}
+	m.hub.exit <- envelope{t: websocket.CloseMessage, msg: []byte{}}
 
 	return nil
 }
@@ -312,7 +291,7 @@ func (m *Melody) CloseWithMsg(msg []byte) error {
 		return ErrClosed
 	}
 
-	m.hub.exit <- &envelope{t: websocket.CloseMessage, msg: msg}
+	m.hub.exit <- envelope{t: websocket.CloseMessage, msg: msg}
 
 	return nil
 }

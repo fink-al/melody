@@ -3,3 +3,4 @@ benchmark
 *.swp
 coverage.out
 node_modules
+.cover.out
